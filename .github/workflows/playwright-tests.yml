@@ -1,36 +1,88 @@
-name: Playwright Tests
+name: main
 
 on:
   push:
     branches:
-      - main
+      - '**'
   pull_request:
-
-permissions:
-  pull-requests: write
-  contents: read
+    branches:
+      - '**'
+  schedule:
+    - cron: '0 2 * * *'
 
 jobs:
-  test:
+  testing:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - run: npm ci
-      - run: npx playwright install --with-deps
-      - name: Run Playwright tests
-        run: npx playwright test --config=e2e.config.ts --reporter=json > test-results/e2e-results.json
-      - uses: actions/upload-artifact@v3
-        with:
-          name: playwright-test-results
-          path: test-results/
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      # Run your tests and redirect JSON results to a file
+      - name: Run tests and generate JSON results
+        run: npx playwright test --reporter=json > test-results/e2e-results.json
+
+      # Convert raw test results into CTRF format
       - name: Convert test results to CTRF
-        run: npx github-actions-ctrf convert --framework playwright --input test-results/e2e-results.json --output test-results/ctrf-report.json
-      - uses: actions/upload-artifact@v3
+        run: npx github-actions-ctrf convert --framework playwright --input test-results/e2e-results.json --output ctrf-reports/ctrf-report.json
+
+      - name: Summary table
+        run: node dist/core/cli.js summary ctrf-reports/ctrf-report.json --title "Summary table"
+
+      - name: Historical table
+        run: node dist/core/cli.js historical ctrf-reports/ctrf-report.json --annotate false --title "Previous results table"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Suite folded table
+        run: node dist/core/cli.js suite-folded ctrf-reports/ctrf-report.json --annotate false --title "Suite folded table"
+
+      - name: Failed table
+        run: node dist/core/cli.js failed ctrf-reports/ctrf-report.json --annotate false --title "Failed table"
+
+      - name: Failed rate table
+        run: node dist/core/cli.js failed-rate ctrf-reports/ctrf-report.json --annotate false --title "Fail rate table"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Failed folded table
+        run: node dist/core/cli.js failed-folded ctrf-reports/ctrf-report.json --annotate false --title "Fail folded table"
+
+      - name: Flaky table
+        run: node dist/core/cli.js flaky ctrf-reports/ctrf-report.json --annotate false --title "flaky table"
+
+      - name: Flaky rate table
+        run: node dist/core/cli.js flaky-rate ctrf-reports/ctrf-report.json --annotate false --title "Flaky rate table"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: AI table
+        run: node dist/core/cli.js ai ctrf-reports/ctrf-report.json --annotate false --title "AI table"
+
+      - name: Skipped table
+        run: node dist/core/cli.js skipped ctrf-reports/ctrf-report.json --annotate false --title "Skipped table"
+
+      - name: Custom
+        run: node dist/core/cli.js custom ctrf-reports/ctrf-report.json templates/custom-summary.hbs --annotate false --title "Custom"
+
+      - name: Upload CTRF report
+        uses: actions/upload-artifact@v4
         with:
-          name: ctrf-test-results
-          path: test-results/ctrf-report.json
-      - name: Generate GitHub Test Reporter Summary
-        run: npx github-actions-ctrf all test-results/ctrf-report.json --pr-comment --update-comment
+          name: ctrf-report
+          path: ctrf-reports/ctrf-report.json
+
+      - name: Upload CTRF report no fails
+        uses: actions/upload-artifact@v4
+        with:
+          name: custom-artifact-name
+          path: ctrf-reports/ctrf-report-no-fails.json
