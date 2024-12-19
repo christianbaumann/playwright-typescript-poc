@@ -39,6 +39,6 @@
     "@typescript-eslint/parser": "^8.18.1",
     "eslint": "^9.17.0",
     "prettier": "^3.4.2",
-    "github-actions-ctrf": "1.0.0"
+    "github-actions-ctrf": "0.0.54"
   }
 }
