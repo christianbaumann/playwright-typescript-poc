@@ -49,4 +49,4 @@ jobs:
           path: test-results/ctrf-report.json
 
       - name: Generate GitHub Test Reporter Summary
-        run: npx github-actions-ctrf all test-results/ctrf-report.json --pr-comment --update-comment
+        run: npx github-actions-ctrf all test-results/e2e-results.json --output test-results/ctrf-report.json
