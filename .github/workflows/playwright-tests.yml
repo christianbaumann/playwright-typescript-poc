@@ -13,40 +13,24 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: '18'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright dependencies
-        run: npx playwright install --with-deps
-
+      - run: npm ci
+      - run: npx playwright install --with-deps
       - name: Run Playwright tests
-        run: npx playwright test --config=e2e.config.ts --reporter=json
-        continue-on-error: true
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v3
+        run: npx playwright test --config=e2e.config.ts --reporter=json > test-results/e2e-results.json
+      - uses: actions/upload-artifact@v3
         with:
           name: playwright-test-results
           path: test-results/
-
       - name: Convert test results to CTRF
-        run: npx github-actions-ctrf convert --input test-results/e2e-results.json --output test-results/ctrf-report.json
-
-      - name: Upload CTRF Test Results
-        uses: actions/upload-artifact@v3
+        run: npx github-actions-ctrf convert --framework playwright --input test-results/e2e-results.json --output test-results/ctrf-report.json
+      - uses: actions/upload-artifact@v3
         with:
           name: ctrf-test-results
           path: test-results/ctrf-report.json
-
       - name: Generate GitHub Test Reporter Summary
         run: npx github-actions-ctrf all test-results/ctrf-report.json --pr-comment --update-comment
