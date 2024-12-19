@@ -49,7 +49,7 @@ jobs:
           path: test-results/ctrf-report.json
 
       - name: Publish Test Results
-        uses: ctrf-io/github-test-reporter@v1
+        uses: ctrf-io/github-test-reporter@main
         with:
           report-file: test-results/ctrf-report.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
