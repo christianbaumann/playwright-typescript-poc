@@ -48,10 +48,5 @@ jobs:
           name: ctrf-test-results
           path: test-results/ctrf-report.json
 
-      - name: Publish Test Results
-        uses: ctrf-io/github-test-reporter@main
-        with:
-          report-file: test-results/ctrf-report.json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          job-summary: true
-          comment-on-pr: true
+      - name: Generate GitHub Test Reporter Summary
+        run: npx github-test-reporter test-results/ctrf-report.json
