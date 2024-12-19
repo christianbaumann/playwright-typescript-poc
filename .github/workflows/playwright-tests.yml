@@ -39,8 +39,8 @@ jobs:
           name: playwright-test-results
           path: test-results/
 
-      - name: Generate CTRF report
-        run: npx github-actions-ctrf --input test-results/e2e-results.json --output test-results/ctrf-report.json
+      - name: Convert test results to CTRF
+        run: npx github-actions-ctrf convert --input test-results/e2e-results.json --output test-results/ctrf-report.json
 
       - name: Upload CTRF Test Results
         uses: actions/upload-artifact@v3
@@ -49,4 +49,4 @@ jobs:
           path: test-results/ctrf-report.json
 
       - name: Generate GitHub Test Reporter Summary
-        run: npx github-actions-ctrf all test-results/e2e-results.json --output test-results/ctrf-report.json
+        run: npx github-actions-ctrf all test-results/ctrf-report.json --pr-comment --update-comment
